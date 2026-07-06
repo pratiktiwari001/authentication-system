@@ -14,7 +14,6 @@ const createRefreshSession = require("../utils/createRefreshSession")
 const logIn = async (req, res) => {
     try {
         const { email, password } = req.body;
-
         const userData = await User.findOne({ email });
         if (!userData) {
             return res.status(403).json({
@@ -22,6 +21,7 @@ const logIn = async (req, res) => {
             })
         }
         const isCorrect = await bcrypt.compare(password, userData.password);
+        // console.log(isCorrect);
         if (userData.email !== email || !isCorrect) {
             return res.status(401).json({
                 message: "Unauthorized Access"
@@ -36,6 +36,7 @@ const logIn = async (req, res) => {
         return res.status(200).json({
             message: "Logged In Successfully!!"
         })
+        
     }
 
     catch (error) {
