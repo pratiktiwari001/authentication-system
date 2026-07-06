@@ -33,7 +33,7 @@ function Register() {
 
     // ⚡ Timer Hook: Triggers down from 30s when the OTP area is active
     useEffect(() => {
-        let timer: NodeJS.Timeout;
+        let timer: ReturnType<typeof setTimeout>;
         if (isOtpStage && countdown > 0 && isResendDisabled) {
             timer = setTimeout(() => {
                 setCountdown((prev) => prev - 1);
