@@ -37,7 +37,7 @@ export default function Dashboard() {
                 setProfile(response.data.user);
             } catch (err: any) {
                 setError("Session expired. Redirecting to login...");
-                setTimeout(() => navigate('/login'), 2000);
+                setTimeout(() => navigate('/login'), 5000);
             } finally {
                 setLoading(false);
             }

@@ -15,11 +15,13 @@ const logIn = async (req, res) => {
     try {
         const { email, password } = req.body;
         const userData = await User.findOne({ email });
+        
         if (!userData) {
             return res.status(403).json({
                 message: "User not registered yet!!"
             })
         }
+       
         const isCorrect = await bcrypt.compare(password, userData.password);
         // console.log(isCorrect);
         if (userData.email !== email || !isCorrect) {
@@ -97,7 +99,7 @@ const sendLogInOTPEmail = async (req,res)=>{
 
     } catch (error) {
 
-        console.error(error);
+        // console.error(error);
 
         return res.status(500).json({
             message: "Internal Server Error"
@@ -156,7 +158,7 @@ const verifyLogInOTPEmail = async (req,res)=>{
     
 
     }catch(error){
-         console.log(error);
+        //  console.log(error);
 
         return res.status(500).json({
             message: "Internal Server Error"

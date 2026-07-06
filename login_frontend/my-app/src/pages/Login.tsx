@@ -136,14 +136,18 @@ const LogIN = () => {
     };
 
     // Central handler for standard log-in forms
+    // Central handler for standard log-in forms
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
         setErrorMessage("");
+        setSuccessMessage("");
         
         try {
             if (loginMethod === 'password') {
-                await Login(loginData);
+                // ⚡ FIX: Call your configured axios instance directly to ensure cookies drop safely
+                const response = await api.post('/login', loginData); 
+                console.log("Password login successful:", response.data);
                 navigate("/dashboard"); 
             } else {
                 const response = await api.post('/login/email/verify', { 
@@ -154,6 +158,7 @@ const LogIN = () => {
                 navigate("/dashboard"); 
             }
         } catch (error: any) {
+            console.error("Login catch block fired:", error);
             setErrorMessage(error.response?.data?.message || "Authentication failed.");
         } finally {
             setLoading(false);
@@ -252,7 +257,7 @@ const LogIN = () => {
                         ) : (
                             otpSent && (
                                 <div className={styles.inputGroup}>
-                                    <input
+                                      <input
                                         type="text"
                                         name="otp"
                                         required

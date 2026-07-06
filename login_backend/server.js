@@ -14,7 +14,7 @@ connectDB();
 
 app.use(cookieParser());
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://authentication-system-new.vercel.app/'], 
+    origin: ['http://localhost:5173', 'https://authentication-system-new.vercel.app'], 
     credentials: true
 }));
 app.use(express.json());
