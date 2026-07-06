@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api",
+    baseURL: "https://authentication-system-gray-two.vercel.app/api",
     withCredentials: true,   // ⭐ VERY IMPORTANT
     headers: {
         "Content-Type": "application/json",
@@ -21,7 +21,7 @@ api.interceptors.response.use(
             try {
                 // 🔄 Call your backend /refresh-token api right here!
                 // The backend checks the RefreshToken model, updates updatedAt, and drops a new access cookie.
-                await axios.post("http://localhost:5000/api/auth/refresh-token", {}, { withCredentials: true });
+                await axios.post("https://authentication-system-gray-two.vercel.app/api/auth/refresh-token", {}, { withCredentials: true });
                 
                 // Retry the original failed request with the fresh new cookie attached
                 return api(originalRequest);
