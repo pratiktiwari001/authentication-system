@@ -1,0 +1,135 @@
+/* Container sizing and centering */
+.authContainer {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background-color: #0d0d0d;
+  padding: 0 16px;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #ffffff;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Toggle Tabs for Sign Up / Log In */
+.tabContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.tabPill {
+  display: inline-flex;
+  background-color: #1c1c1e;
+  padding: 4px;
+  border-radius: 9999px;
+}
+
+.tabBtn {
+  background: none;
+  border: none;
+  padding: 8px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e8e93;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabBtnActive {
+  background: linear-gradient(to right, #f5b800, #ffcc00);
+  color: #000000;
+  box-shadow: 0 4px 12px rgba(255, 204, 0, 0.15);
+}
+
+/* Header Typography */
+.authTitle {
+  text-align: center;
+  font-size: 32px;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Input Form elements */
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inputGroup {
+  position: relative;
+  width: 100%;
+}
+
+.authInput {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #242426;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: #ffffff;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.authInput::placeholder {
+  color: #555558;
+}
+
+.authInput:focus {
+  border-color: #ffcc00;
+}
+
+/* Premium Gold Submit Button */
+.submitBtn {
+  width: 100%;
+  background: linear-gradient(to right, #f5b800, #ffcc00);
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000000;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 204, 0, 0.2);
+  transition: all 0.2s ease;
+  margin-top: 16px;
+}
+
+.submitBtn:hover {
+  opacity: 0.95;
+}
+
+.submitBtn:active {
+  transform: scale(0.99);
+}
+
+/* Footer elements */
+.authFooter {
+  text-align: center;
+  font-size: 14px;
+  color: #8e8e93;
+}
+
+.redirectLink {
+  color: #ffcc00;
+  cursor: pointer;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+.redirectLink:hover {
+  text-decoration: underline;
+}
