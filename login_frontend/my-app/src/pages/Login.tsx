@@ -138,7 +138,8 @@ const LogIN = () => {
                 password: newPassword 
             });
             
-            navigate("/dashboard");
+            localStorage.setItem("isLoggedIn", "true");
+            navigate("/dashboard", { replace: true });
         } catch (error: any) {
             setErrorMessage(error.response?.data?.message || "Failed to change password.");
         } finally {
@@ -157,7 +158,8 @@ const LogIN = () => {
             if (loginMethod === 'password') {
                 await api.post('/login', loginData); 
                 // console.log("Password login successful:", response.data);
-                navigate("/dashboard"); 
+                localStorage.setItem("isLoggedIn", "true");
+                navigate("/dashboard", { replace: true }); 
             } else {
                 
                 if (otpChannel === 'email') {
@@ -172,7 +174,8 @@ const LogIN = () => {
                     });
                 }
                 // console.log("OTP Verified successfully:", response.data);
-                navigate("/dashboard"); 
+                localStorage.setItem("isLoggedIn", "true");
+                navigate("/dashboard", { replace: true }); 
             }
         } catch (error: any) {
             console.error("Login catch block fired:", error);

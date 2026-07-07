@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from "../api/axios";
 import { useNavigate } from 'react-router-dom';
-import styles from '../stlyles/login.module.css'; 
+import styles from '../stlyles/login.module.css';
 
 interface UserProfile {
     name: string;
@@ -28,7 +28,7 @@ export default function Dashboard() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>("");
     const [hoveredSession, setHoveredSession] = useState<string | null>(null);
-    
+
     // ⚡ Accordion UI toggle state variable
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
@@ -65,12 +65,13 @@ export default function Dashboard() {
                     api.get('/auth/profile'),
                     api.get('/sessions')
                 ]);
-                
+
                 setProfile(profileRes.data.user);
                 setSessions(sessionsRes.data.sessions || []);
             } catch (err: any) {
-                setError("Session expired. Redirecting to login...");
-                setTimeout(() => navigate('/login'), 5000);
+                console.error("Profile check failed. Session invalid.");
+                localStorage.removeItem("isLoggedIn"); // Wipe the flag
+                navigate("/login", { replace: true }); // Boot to login
             } finally {
                 setLoading(false);
             }
@@ -85,16 +86,18 @@ export default function Dashboard() {
         } catch (err) {
             console.error("Logout failed on backend", err);
         } finally {
+            localStorage.removeItem("isLoggedIn");
             navigate('/login');
         }
     };
 
     const handleLogoutAll = async () => {
         if (!window.confirm("Are you sure you want to log out of ALL active devices?")) return;
-        
+
         setLoading(true);
         try {
             await api.post('/logout/all');
+            localStorage.removeItem("isLoggedIn");
             navigate('/login');
         } catch (err: any) {
             console.error("Global logout failed on backend", err);
@@ -136,15 +139,15 @@ export default function Dashboard() {
                 transition: 'all 0.2s ease',
                 boxShadow: '0 2px 8px rgba(255, 74, 74, 0.05)'
             }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 74, 74, 0.15)';
-                e.currentTarget.style.borderColor = 'rgba(255, 74, 74, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 74, 74, 0.08)';
-                e.currentTarget.style.borderColor = 'rgba(255, 74, 74, 0.2)';
-            }}
-            onClick={() => navigate('/verify-otp', { state: { email: profile?.email } })}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 74, 74, 0.15)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 74, 74, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 74, 74, 0.08)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 74, 74, 0.2)';
+                }}
+                onClick={() => navigate('/verify-otp', { state: { email: profile?.email } })}
             >
                 Unverified
             </span>
@@ -160,7 +163,7 @@ export default function Dashboard() {
             </div>
         </div>
     );
-    
+
     if (error) return (
         <div className={styles.authContainer}>
             <div style={{ color: '#ff4a4a', background: 'rgba(255, 74, 74, 0.08)', padding: '12px 20px', borderRadius: '14px', border: '1px solid rgba(255, 74, 74, 0.15)', animation: 'cardAppear 0.3s ease forwards' }}>
@@ -172,14 +175,14 @@ export default function Dashboard() {
     return (
         <div className={styles.authContainer}>
             <div className={styles.authCard} style={{ maxWidth: '440px', gap: '24px' }}>
-                
+
                 {/* Profile Avatar & Title Block */}
                 <div style={{ textAlign: 'center', position: 'relative' }}>
-                    <div style={{ 
-                        width: '64px', 
-                        height: '64px', 
-                        borderRadius: '50%', 
-                        background: 'linear-gradient(135deg, #ffdb4d 0%, #ffcc00 100%)', 
+                    <div style={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #ffdb4d 0%, #ffcc00 100%)',
                         margin: '0 auto 14px auto',
                         display: 'flex',
                         alignItems: 'center',
@@ -197,15 +200,15 @@ export default function Dashboard() {
                     </h1>
                     <p style={{ color: '#636366', fontSize: '13px', margin: '6px 0 0 0', letterSpacing: '0.2px' }}>Secure System Instance</p>
                 </div>
-                
+
                 {/* Identity Metadata Container Card */}
-                <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: '14px', 
-                    background: 'linear-gradient(180deg, #161619 0%, #131316 100%)', 
-                    padding: '22px 20px', 
-                    borderRadius: '16px', 
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    background: 'linear-gradient(180deg, #161619 0%, #131316 100%)',
+                    padding: '22px 20px',
+                    borderRadius: '16px',
                     border: '1px solid rgba(255,255,255,0.02)',
                     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.02)'
                 }}>
@@ -229,24 +232,24 @@ export default function Dashboard() {
                 </div>
 
                 {/* ⚡ Dynamic Collapsible Active Session Monitoring Drawer */}
-                <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    background: 'linear-gradient(180deg, #161619 0%, #131316 100%)', 
-                    borderRadius: '16px', 
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: 'linear-gradient(180deg, #161619 0%, #131316 100%)',
+                    borderRadius: '16px',
                     border: '1px solid rgba(255,255,255,0.02)',
                     boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.02)',
                     overflow: 'hidden',
                     transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
-                    
+
                     {/* Drawer Trigger Header Button Row */}
-                    <div 
+                    <div
                         onClick={() => setIsExpanded(!isExpanded)}
-                        style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            alignItems: 'center', 
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
                             padding: '20px',
                             cursor: 'pointer',
                             userSelect: 'none',
@@ -270,25 +273,25 @@ export default function Dashboard() {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             {/* Dynamic Counter Indicator Pill */}
-                            <span style={{ 
-                                fontSize: '11px', 
-                                background: 'rgba(255, 204, 0, 0.1)', 
-                                color: '#ffcc00', 
-                                fontWeight: '700', 
-                                padding: '3px 9px', 
+                            <span style={{
+                                fontSize: '11px',
+                                background: 'rgba(255, 204, 0, 0.1)',
+                                color: '#ffcc00',
+                                fontWeight: '700',
+                                padding: '3px 9px',
                                 borderRadius: '8px',
-                                border: '1px solid rgba(255, 204, 0, 0.2)' 
+                                border: '1px solid rgba(255, 204, 0, 0.2)'
                             }}>
                                 {sessions.length} Online
                             </span>
-                            
+
                             {/* Smooth Rotating Chevron Arrow Indicator */}
-                            <span style={{ 
-                                fontSize: '11px', 
-                                color: '#636366', 
-                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', 
+                            <span style={{
+                                fontSize: '11px',
+                                color: '#636366',
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                                 transition: 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-                                display: 'inline-block' 
+                                display: 'inline-block'
                             }}>
                                 ▼
                             </span>
@@ -312,23 +315,23 @@ export default function Dashboard() {
                         {sessions.map((session, index) => {
                             const isCurrent = session.isCurrentDevice;
                             const isHovered = hoveredSession === session._id;
-                            
+
                             return (
-                                <div 
-                                    key={session._id} 
+                                <div
+                                    key={session._id}
                                     onMouseOver={() => setHoveredSession(session._id)}
                                     onMouseLeave={() => setHoveredSession(null)}
-                                    style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'space-between', 
-                                        padding: '12px 14px', 
-                                        background: isCurrent 
-                                            ? 'rgba(255, 204, 0, 0.02)' 
-                                            : isHovered ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.005)', 
-                                        border: isCurrent 
-                                            ? `1px solid ${isHovered ? 'rgba(255, 204, 0, 0.25)' : 'rgba(255, 204, 0, 0.12)'}` 
-                                            : `1px solid ${isHovered ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)'}`, 
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '12px 14px',
+                                        background: isCurrent
+                                            ? 'rgba(255, 204, 0, 0.02)'
+                                            : isHovered ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.005)',
+                                        border: isCurrent
+                                            ? `1px solid ${isHovered ? 'rgba(255, 204, 0, 0.25)' : 'rgba(255, 204, 0, 0.12)'}`
+                                            : `1px solid ${isHovered ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.02)'}`,
                                         borderRadius: '12px',
                                         opacity: isCurrent ? 1 : isHovered ? 0.85 : 0.5,
                                         transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
@@ -363,17 +366,17 @@ export default function Dashboard() {
 
                 {/* Refined Mini Action Gateway Buttons */}
                 <div style={{ display: 'flex', gap: '12px', marginTop: '2px' }}>
-                    <button 
-                        onClick={handleLogout} 
-                        style={{ 
+                    <button
+                        onClick={handleLogout}
+                        style={{
                             flex: 1,
-                            background: '#1a1a1e', 
-                            color: '#e5e5ea', 
-                            border: '1px solid rgba(255,255,255,0.05)', 
-                            borderRadius: '12px', 
-                            padding: '12px 14px', 
-                            fontSize: '13.5px', 
-                            fontWeight: '600', 
+                            background: '#1a1a1e',
+                            color: '#e5e5ea',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            borderRadius: '12px',
+                            padding: '12px 14px',
+                            fontSize: '13.5px',
+                            fontWeight: '600',
                             cursor: 'pointer',
                             transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
                         }}
@@ -390,19 +393,19 @@ export default function Dashboard() {
                     >
                         Sign Out
                     </button>
-                    
-                    <button 
+
+                    <button
                         type="button"
-                        onClick={handleLogoutAll} 
-                        style={{ 
+                        onClick={handleLogoutAll}
+                        style={{
                             flex: 1,
-                            background: 'rgba(255, 74, 74, 0.04)', 
-                            color: '#ff4a4a', 
-                            border: '1px solid rgba(255, 74, 74, 0.15)', 
-                            borderRadius: '12px', 
-                            padding: '12px 14px', 
-                            fontSize: '13.5px', 
-                            fontWeight: '600', 
+                            background: 'rgba(255, 74, 74, 0.04)',
+                            color: '#ff4a4a',
+                            border: '1px solid rgba(255, 74, 74, 0.15)',
+                            borderRadius: '12px',
+                            padding: '12px 14px',
+                            fontSize: '13.5px',
+                            fontWeight: '600',
                             cursor: 'pointer',
                             transition: 'all 0.2s cubic-bezier(0.25, 1, 0.5, 1)'
                         }}
