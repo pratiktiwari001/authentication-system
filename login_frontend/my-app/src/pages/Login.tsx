@@ -155,11 +155,11 @@ const LogIN = () => {
         
         try {
             if (loginMethod === 'password') {
-                const response = await api.post('/login', loginData); 
+                await api.post('/login', loginData); 
                 // console.log("Password login successful:", response.data);
                 navigate("/dashboard"); 
             } else {
-                let response;
+                let response
                 if (otpChannel === 'email') {
                     response = await api.post('/login/email/verify', { 
                         email: loginData.email, 
