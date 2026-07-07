@@ -159,14 +159,14 @@ const LogIN = () => {
                 // console.log("Password login successful:", response.data);
                 navigate("/dashboard"); 
             } else {
-                let response
+                
                 if (otpChannel === 'email') {
-                    response = await api.post('/login/email/verify', { 
+                    await api.post('/login/email/verify', { 
                         email: loginData.email, 
                         otp: otp 
                     });
                 } else {
-                    response = await api.post('/login/phone/verify', { 
+                    await api.post('/login/phone/verify', { 
                         phone: phone, 
                         otp: otp 
                     });
