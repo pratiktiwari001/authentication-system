@@ -12,6 +12,19 @@ const refreshTokenSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        deviceName: {
+            type: String,
+            required: true
+        },
+
+        userAgent: {
+            type: String,
+            required: true
+        },
+
+        ipAddress: {
+            type: String
+        },
 
         expiresAt: {
             type: Date,
@@ -21,7 +34,5 @@ const refreshTokenSchema = new mongoose.Schema(
     },
     {
         timestamps: true
-    }
-);
-
+    });
 module.exports = mongoose.model("RefreshToken", refreshTokenSchema);

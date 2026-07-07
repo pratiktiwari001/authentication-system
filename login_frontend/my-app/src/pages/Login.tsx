@@ -12,6 +12,9 @@ const LogIN = () => {
     // Toggle modes: 'password' | 'otp' | 'forgot'
     const [loginMethod, setLoginMethod] = useState<'password' | 'otp' | 'forgot'>('password');
     
+    // Sub-toggle for OTP sub-methods: 'email' | 'phone'
+    const [otpChannel, setOtpChannel] = useState<'email' | 'phone'>('email');
+
     // Forgot Password Flow Sub-Steps: 1 (Email) | 2 (OTP Entry) | 3 (New Password Entry)
     const [forgotStep, setForgotStep] = useState<1 | 2 | 3>(1);
 
@@ -25,6 +28,8 @@ const LogIN = () => {
         password: ""
     });
     
+    // State explicitly for handling mobile phone string inputs
+    const [phone, setPhone] = useState<string>("");
     const [otp, setOtp] = useState<string>("");
     
     // States specifically for resetting the password
@@ -32,16 +37,17 @@ const LogIN = () => {
     const [confirmPassword, setConfirmPassword] = useState<string>("");
 
     useEffect(() => {
-    // Check if the Axios interceptor dropped off an expiration message from the backend
-    const expiredMessage = sessionStorage.getItem("logout_reason");
-    
-    if (expiredMessage) {
-        setErrorMessage(expiredMessage);
+        // Check if the Axios interceptor dropped off an expiration message from the backend
+        const expiredMessage = sessionStorage.getItem("logout_reason");
         
-        // Clear it out immediately so refreshing the page manually hides the error banner
-        sessionStorage.removeItem("logout_reason");
-    }
-}, []);
+        if (expiredMessage) {
+            setErrorMessage(expiredMessage);
+            
+            // Clear it out immediately so refreshing the page manually hides the error banner
+            sessionStorage.removeItem("logout_reason");
+        }
+    }, []);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLoginData({
             ...loginData,
@@ -55,18 +61,27 @@ const LogIN = () => {
         navigate("/"); 
     };
 
-    // Action: Handle normal Login OTP generation
+    // Action: Handles dynamic OTP dispatch based on active channel strategy
     const handleSendOTP = async () => {
-        if (!loginData.email) {
+        if (otpChannel === 'email' && !loginData.email) {
             setErrorMessage("Please enter your email first.");
             return;
         }
+        if (otpChannel === 'phone' && !phone) {
+            setErrorMessage("Please enter your phone number first.");
+            return;
+        }
+
         setLoading(true);
         setErrorMessage("");
         try {
-            await api.post('/login/email/send', { email: loginData.email });
+            if (otpChannel === 'email') {
+                await api.post('/login/email/send', { email: loginData.email });
+            } else {
+                await api.post('/login/phone/send', { phone });
+            }
             setOtpSent(true); 
-            setSuccessMessage("OTP sent successfully!");
+            setSuccessMessage("Verification code dispatched successfully!");
         } catch (error: any) {
             setErrorMessage(error.response?.data?.message || "Failed to send OTP.");
         } finally {
@@ -82,7 +97,7 @@ const LogIN = () => {
         try {
             await api.post('/auth/forgot-password', { email: loginData.email });
             setSuccessMessage("Reset OTP sent to your email.");
-            setForgotStep(2); // Advance to OTP verification entry stage
+            setForgotStep(2); 
         } catch (error: any) {
             setErrorMessage(error.response?.data?.message || "Email lookup failed.");
         } finally {
@@ -98,7 +113,7 @@ const LogIN = () => {
         try {
             await api.post('/auth/forgot-password/otp-verify', { email: loginData.email, otp: otp });
             setSuccessMessage("Identity verified. Set your new password.");
-            setForgotStep(3); // Advance to inputting the password
+            setForgotStep(3); 
         } catch (error: any) {
             setErrorMessage(error.response?.data?.message || "Invalid OTP code.");
         } finally {
@@ -107,11 +122,9 @@ const LogIN = () => {
     };
 
     // Forgot Password Phase 3: Update and route to Dashboard
-    // Forgot Password Phase 3: Update and route to Dashboard
     const handleResetPasswordFinalSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Frontend match verification shield
         if (newPassword !== confirmPassword) {
             setErrorMessage("Passwords do not match!");
             return;
@@ -120,13 +133,11 @@ const LogIN = () => {
         setLoading(true);
         setErrorMessage("");
         try {
-            // ⚡ UPDATED: Hitting your exact backend endpoint path
             await api.post('/auth/forgot-password/reset-password', { 
                 email: loginData.email, 
                 password: newPassword 
             });
             
-            // Password updated successfully! Send them straight to the dashboard
             navigate("/dashboard");
         } catch (error: any) {
             setErrorMessage(error.response?.data?.message || "Failed to change password.");
@@ -136,7 +147,6 @@ const LogIN = () => {
     };
 
     // Central handler for standard log-in forms
-    // Central handler for standard log-in forms
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
@@ -145,16 +155,23 @@ const LogIN = () => {
         
         try {
             if (loginMethod === 'password') {
-                // ⚡ FIX: Call your configured axios instance directly to ensure cookies drop safely
                 const response = await api.post('/login', loginData); 
-                console.log("Password login successful:", response.data);
+                // console.log("Password login successful:", response.data);
                 navigate("/dashboard"); 
             } else {
-                const response = await api.post('/login/email/verify', { 
-                    email: loginData.email, 
-                    otp: otp 
-                });
-                console.log("OTP Verified successfully:", response.data);
+                let response;
+                if (otpChannel === 'email') {
+                    response = await api.post('/login/email/verify', { 
+                        email: loginData.email, 
+                        otp: otp 
+                    });
+                } else {
+                    response = await api.post('/login/phone/verify', { 
+                        phone: phone, 
+                        otp: otp 
+                    });
+                }
+                // console.log("OTP Verified successfully:", response.data);
                 navigate("/dashboard"); 
             }
         } catch (error: any) {
@@ -169,7 +186,7 @@ const LogIN = () => {
         <div className={styles.authContainer}>
             <div className={styles.authCard}>
                 
-                {/* Header Navigation Tabs - Hides when resetting password to avoid context breaks */}
+                {/* Header Navigation Tabs */}
                 {loginMethod !== 'forgot' && (
                     <div className={styles.tabContainer}>
                         <div className={styles.tabPill}>
@@ -183,13 +200,13 @@ const LogIN = () => {
                     </div>
                 )}
 
-                {/* Sub-Toggle for Strategy - Hides when resetting password */}
+                {/* Sub-Toggle for Strategy */}
                 {loginMethod !== 'forgot' && (
                     <div className={styles.tabContainer} style={{ marginTop: '-10px' }}>
-                        <div className={styles.tabPill} style={{ backgroundColor: '#141416' }}>
+                        <div className={styles.tabPill} style={{ backgroundColor: '#0d0d0f' }}>
                             <button
                                 type="button"
-                                onClick={() => { setLoginMethod('password'); setErrorMessage(""); setSuccessMessage(""); }}
+                                onClick={() => { setLoginMethod('password'); setOtpSent(false); setOtp(""); setErrorMessage(""); setSuccessMessage(""); }}
                                 className={`${styles.tabBtn} ${loginMethod === 'password' ? styles.tabBtnActive : ''}`}
                                 style={{ fontSize: '12px', padding: '6px 16px' }}
                             >
@@ -197,7 +214,7 @@ const LogIN = () => {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => { setLoginMethod('otp'); setErrorMessage(""); setSuccessMessage(""); }}
+                                onClick={() => { setLoginMethod('otp'); setOtpSent(false); setOtp(""); setErrorMessage(""); setSuccessMessage(""); }}
                                 className={`${styles.tabBtn} ${loginMethod === 'otp' ? styles.tabBtnActive : ''}`}
                                 style={{ fontSize: '12px', padding: '6px 16px' }}
                             >
@@ -207,34 +224,111 @@ const LogIN = () => {
                     </div>
                 )}
 
-                {/* Header Text rendering dynamically based on routing step state context */}
-                <h1 className={styles.authTitle}>
-                    {loginMethod === 'password' && 'Welcome Back'}
-                    {loginMethod === 'otp' && 'Verify via OTP'}
-                    {loginMethod === 'forgot' && (
-                        forgotStep === 1 ? 'Reset Password' : forgotStep === 2 ? 'Enter Reset OTP' : 'New Password'
-                    )}
-                </h1>
+                {/* Sub-Toggle Options for Email vs Phone under OTP Mode */}
+                {loginMethod === 'otp' && !otpSent && (
+                    <div className={styles.tabContainer} style={{ marginTop: '-4px', animation: "cardAppear 0.3s ease forwards" }}>
+                        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#8e8e93', cursor: 'pointer', transition: 'color 0.2s' }}>
+                                <input 
+                                    type="radio" 
+                                    name="otpChannel" 
+                                    checked={otpChannel === 'email'} 
+                                    onChange={() => setOtpChannel('email')} 
+                                    style={{ accentColor: '#ffcc00', transform: 'scale(1.05)' }}
+                                />
+                                Email Channel
+                            </label>
+                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#8e8e93', cursor: 'pointer', transition: 'color 0.2s' }}>
+                                <input 
+                                    type="radio" 
+                                    name="otpChannel" 
+                                    checked={otpChannel === 'phone'} 
+                                    onChange={() => setOtpChannel('phone')} 
+                                    style={{ accentColor: '#ffcc00', transform: 'scale(1.05)' }}
+                                />
+                                SMS Channel
+                            </label>
+                        </div>
+                    </div>
+                )}
 
-                {/* Notification Banners */}
-                {errorMessage && <div style={{ color: '#ff4a4a', fontSize: '14px', textAlign: 'center' }}>{errorMessage}</div>}
-                {successMessage && <div style={{ color: '#00ff66', fontSize: '14px', textAlign: 'center' }}>{successMessage}</div>}
+                {/* Header Typography Label Context */}
+                <div style={{ textAlign: "center", marginBottom: "4px" }}>
+                    <h1 className={styles.authTitle}>
+                        {loginMethod === 'password' && 'Welcome Back'}
+                        {loginMethod === 'otp' && (otpChannel === 'email' ? 'Email Handshake' : 'Secure SMS Lock')}
+                        {loginMethod === 'forgot' && (
+                            forgotStep === 1 ? 'Recover Password' : forgotStep === 2 ? 'Security Token' : 'Update Credentials'
+                        )}
+                    </h1>
+                    <p style={{ color: "#636366", fontSize: "13px", margin: "6px 0 0 0" }}>
+                        {loginMethod === 'password' && "Access your personal workspace portal"}
+                        {loginMethod === 'otp' && "Provide identity credentials to initialize token"}
+                        {loginMethod === 'forgot' && "Follow automated isolation blocks to reset keys"}
+                    </p>
+                </div>
+
+                {/* Premium Status Warning/Info Banners */}
+                {errorMessage && (
+                    <div style={{ 
+                        color: '#ff4a4a', 
+                        fontSize: '13px', 
+                        textAlign: 'center', 
+                        background: 'rgba(255, 74, 74, 0.08)', 
+                        padding: '11px 14px', 
+                        borderRadius: '12px', 
+                        border: '1px solid rgba(255, 74, 74, 0.15)',
+                        animation: "cardAppear 0.25s ease forwards"
+                    }}>
+                        ⚠️ {errorMessage}
+                    </div>
+                )}
+                {successMessage && (
+                    <div style={{ 
+                        color: '#00ff66', 
+                        fontSize: '13px', 
+                        textAlign: 'center', 
+                        background: 'rgba(0, 255, 102, 0.08)', 
+                        padding: '11px 14px', 
+                        borderRadius: '12px', 
+                        border: '1px solid rgba(0, 255, 102, 0.15)',
+                        animation: "cardAppear 0.25s ease forwards"
+                    }}>
+                        ✓ {successMessage}
+                    </div>
+                )}
 
                 {/* --- RENDER VIEW 1: STANDARD FORMS (PASSWORD & OTP LOGIN) --- */}
                 {loginMethod !== 'forgot' && (
                     <form onSubmit={handleSubmit} className={styles.authForm}>
-                        <div className={styles.inputGroup}>
-                            <input
-                                type="email"
-                                name="email"
-                                required
-                                placeholder="Enter Your Email"
-                                value={loginData.email}
-                                onChange={handleChange}
-                                disabled={otpSent && loginMethod === 'otp'}
-                                className={styles.authInput}
-                            />
-                        </div>
+                        
+                        {/* Dynamic Field Identity Layer */}
+                        {loginMethod === 'password' || (loginMethod === 'otp' && otpChannel === 'email') ? (
+                            <div className={styles.inputGroup}>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    placeholder="Enter Your Email"
+                                    value={loginData.email}
+                                    onChange={handleChange}
+                                    disabled={otpSent && loginMethod === 'otp'}
+                                    className={styles.authInput}
+                                />
+                            </div>
+                        ) : (
+                            <div className={styles.inputGroup} style={{ animation: "cardAppear 0.3s ease forwards" }}>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="Enter Your Phone Number"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    disabled={otpSent}
+                                    className={styles.authInput}
+                                />
+                            </div>
+                        )}
 
                         {loginMethod === 'password' ? (
                             <div className={styles.inputGroup}>
@@ -249,24 +343,26 @@ const LogIN = () => {
                                 />
                                 <div 
                                     onClick={() => { setLoginMethod('forgot'); setErrorMessage(""); setSuccessMessage(""); }}
-                                    style={{ color: '#ffcc00', fontSize: '12px', textAlign: 'right', marginTop: '6px', cursor: 'pointer' }}
+                                    style={{ color: '#ffcc00', fontSize: '12px', textAlign: 'right', marginTop: '8px', cursor: 'pointer', transition: 'color 0.2s' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = '#ffe066'}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = '#ffcc00'}
                                 >
                                     Forgot Password?
                                 </div>
                             </div>
                         ) : (
                             otpSent && (
-                                <div className={styles.inputGroup}>
-                                      <input
+                                <div className={styles.inputGroup} style={{ animation: "cardAppear 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+                                    <input
                                         type="text"
                                         name="otp"
                                         required
                                         maxLength={6}
-                                        placeholder="Enter 6-Digit OTP"
+                                        placeholder="🔢 Enter 6-Digit Verification Token"
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                         className={styles.authInput}
-                                        style={{ letterSpacing: '4px', textAlign: 'center' }}
+                                        style={{ letterSpacing: '2px', textAlign: 'center', borderColor: 'rgba(255, 204, 0, 0.35)' }}
                                     />
                                 </div>
                             )
@@ -274,11 +370,11 @@ const LogIN = () => {
 
                         {loginMethod === 'otp' && !otpSent ? (
                             <button type="button" onClick={handleSendOTP} disabled={loading} className={styles.submitBtn}>
-                                {loading ? 'Sending...' : 'Send OTP'}
+                                {loading ? 'Requesting Key...' : 'Send OTP'}
                             </button>
                         ) : (
                             <button type="submit" disabled={loading} className={styles.submitBtn}>
-                                {loading ? 'Processing...' : loginMethod === 'password' ? 'Login' : 'Verify & Login'}
+                                {loading ? 'Validating Handshake...' : loginMethod === 'password' ? 'Authorize Session' : 'Verify & Login'}
                             </button>
                         )}
                     </form>
@@ -286,8 +382,7 @@ const LogIN = () => {
 
                 {/* --- RENDER VIEW 2: FORGOT PASSWORD SEQUENTIAL STEPS --- */}
                 {loginMethod === 'forgot' && (
-                    <div className={styles.authForm}>
-                        {/* Step 1 Form: Send Verification Token */}
+                    <div className={styles.authForm} style={{ animation: "cardAppear 0.3s ease forwards" }}>
                         {forgotStep === 1 && (
                             <form onSubmit={handleForgotEmailSubmit} className={styles.authForm}>
                                 <div className={styles.inputGroup}>
@@ -302,12 +397,11 @@ const LogIN = () => {
                                     />
                                 </div>
                                 <button type="submit" disabled={loading} className={styles.submitBtn}>
-                                    {loading ? 'Sending Code...' : 'Send Reset OTP'}
+                                    {loading ? 'Routing Recovery Request...' : 'Send Reset OTP'}
                                 </button>
                             </form>
                         )}
 
-                        {/* Step 2 Form: Validate Code */}
                         {forgotStep === 2 && (
                             <form onSubmit={handleForgotOTPSubmit} className={styles.authForm}>
                                 <div className={styles.inputGroup}>
@@ -315,20 +409,19 @@ const LogIN = () => {
                                         type="text"
                                         required
                                         maxLength={6}
-                                        placeholder="Enter 6-Digit Reset OTP"
+                                        placeholder="🔢 Enter 6-Digit Recovery Token"
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                                         className={styles.authInput}
-                                        style={{ letterSpacing: '4px', textAlign: 'center' }}
+                                        style={{ letterSpacing: '2px', textAlign: 'center', borderColor: 'rgba(255, 204, 0, 0.35)' }}
                                     />
                                 </div>
                                 <button type="submit" disabled={loading} className={styles.submitBtn}>
-                                    {loading ? 'Verifying...' : 'Verify Token'}
+                                    {loading ? 'Authenticating Token...' : 'Verify Token'}
                                 </button>
                             </form>
                         )}
 
-                        {/* Step 3 Form: Save and Commit New Credentials */}
                         {forgotStep === 3 && (
                             <form onSubmit={handleResetPasswordFinalSubmit} className={styles.authForm}>
                                 <div className={styles.inputGroup}>
@@ -352,12 +445,11 @@ const LogIN = () => {
                                     />
                                 </div>
                                 <button type="submit" disabled={loading} className={styles.submitBtn}>
-                                    {loading ? 'Saving Changes...' : 'Update & Open Dashboard'}
+                                    {loading ? 'Overwriting Records...' : 'Update Password'}
                                 </button>
                             </form>
                         )}
 
-                        {/* Back navigation out of forgot state option link */}
                         <div 
                             onClick={() => { setLoginMethod('password'); setForgotStep(1); setErrorMessage(""); setSuccessMessage(""); }}
                             className={styles.redirectLink} 
@@ -369,10 +461,7 @@ const LogIN = () => {
                 )}
 
                 <div className={styles.authFooter}>
-                    New User??
-                    <span onClick={handleRegisterRedirect} className={styles.redirectLink}>
-                        Register here
-                    </span>
+                    New User?? <span onClick={handleRegisterRedirect} className={styles.redirectLink}>Register here</span>
                 </div>
 
             </div>

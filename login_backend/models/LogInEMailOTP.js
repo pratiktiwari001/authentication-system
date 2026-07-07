@@ -3,9 +3,12 @@ const mongoose = require("mongoose");
 const loginOTPSchema = new mongoose.Schema({
     email: {
         type: String,
-        required: true
+        default: null
     },
-
+    phone: {
+        type: String,
+        default: null
+    },
     otp: {
         type: String,
         required: true

@@ -128,6 +128,7 @@ function Register() {
         <div className={styles.authContainer}>
             <div className={styles.authCard}>
                 
+                {/* Header Toggle Navigation Tabs */}
                 <div className={styles.tabContainer}>
                     <div className={styles.tabPill}>
                         <button type="button" className={`${styles.tabBtn} ${styles.tabBtnActive}`}>Sign Up</button>
@@ -135,11 +136,40 @@ function Register() {
                     </div>
                 </div>
 
-                <h1 className={styles.authTitle}>Create An Account</h1>
+                <div style={{ textAlign: "center", marginBottom: "4px" }}>
+                    <h1 className={styles.authTitle}>Create An Account</h1>
+                    <p style={{ color: "#636366", fontSize: "13px", margin: "6px 0 0 0" }}>
+                        {!isOtpStage ? "Get started with your secure credentials" : "Confirm identity via multi-channel tokens"}
+                    </p>
+                </div>
 
-                {/* Status Banners */}
-                {errorMessage && <div style={{ color: '#ff4a4a', fontSize: '14px', textAlign: 'center', marginBottom: '10px' }}>{errorMessage}</div>}
-                {successMessage && <div style={{ color: '#00ff66', fontSize: '14px', textAlign: 'center', marginBottom: '10px' }}>{successMessage}</div>}
+                {/* Premium Status Banner System */}
+                {errorMessage && (
+                    <div style={{ 
+                        color: '#ff4a4a', 
+                        fontSize: '13px', 
+                        textAlign: 'center', 
+                        background: 'rgba(255, 74, 74, 0.08)', 
+                        padding: '10px 14px', 
+                        borderRadius: '10px', 
+                        border: '1px solid rgba(255, 74, 74, 0.15)' 
+                    }}>
+                        ⚠️ {errorMessage}
+                    </div>
+                )}
+                {successMessage && (
+                    <div style={{ 
+                        color: '#00ff66', 
+                        fontSize: '13px', 
+                        textAlign: 'center', 
+                        background: 'rgba(0, 255, 102, 0.08)', 
+                        padding: '10px 14px', 
+                        borderRadius: '10px', 
+                        border: '1px solid rgba(0, 255, 102, 0.15)' 
+                    }}>
+                        ✓ {successMessage}
+                    </div>
+                )}
 
                 <form onSubmit={!isOtpStage ? handleInitialSubmit : handleOtpVerificationSubmit} className={styles.authForm}>
                     
@@ -148,82 +178,93 @@ function Register() {
                         <input type="text" name="name" required disabled={isOtpStage} placeholder="Enter Name" value={formData.name} onChange={handleChange} className={styles.authInput} />
                     </div>
 
-                    {/* Input Field: Email */}
-                    <div className={styles.inputGroup}>
-                        <input type="email" name="email" required disabled={isOtpStage} placeholder="Enter Email Address" value={formData.email} onChange={handleChange} className={styles.authInput} />
+                    {/* Input Field: Email Component Stack */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <div className={styles.inputGroup}>
+                            <input type="email" name="email" required disabled={isOtpStage} placeholder="Enter Email Address" value={formData.email} onChange={handleChange} className={styles.authInput} />
+                        </div>
+
+                        {/* Conditional Drop: Email OTP */}
+                        {isOtpStage && (
+                            <div className={styles.inputGroup} style={{ animation: "cardAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+                                <input
+                                    type="text"
+                                    required
+                                    maxLength={6}
+                                    placeholder="🔢 Enter 6-Digit Email OTP"
+                                    value={emailOtp}
+                                    onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ""))}
+                                    className={styles.authInput}
+                                    style={{ textAlign: 'center', letterSpacing: '2px', borderColor: 'rgba(255, 204, 0, 0.35)', background: "#151518" }}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    {/* Conditional Drop: Email OTP */}
-                    {isOtpStage && (
-                        <div className={styles.inputGroup} style={{ marginTop: '-8px' }}>
-                            <input
-                                type="text"
-                                required
-                                maxLength={6}
-                                placeholder="🔢 Enter 6-Digit Email OTP"
-                                value={emailOtp}
-                                onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ""))}
-                                className={styles.authInput}
-                                style={{ textAlign: 'center', borderColor: '#ffcc00' }}
-                            />
+                    {/* Input Field: Phone Number Component Stack */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <div className={styles.inputGroup}>
+                            <input type="text" name="phone" required disabled={isOtpStage} placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} className={styles.authInput} />
                         </div>
-                    )}
 
-                    {/* Input Field: Phone Number */}
-                    <div className={styles.inputGroup}>
-                        <input type="text" name="phone" required disabled={isOtpStage} placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} className={styles.authInput} />
+                        {/* Conditional Drop: Phone OTP */}
+                        {isOtpStage && (
+                            <div className={styles.inputGroup} style={{ animation: "cardAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+                                <input
+                                    type="text"
+                                    required
+                                    maxLength={6}
+                                    placeholder="🔢 Enter 6-Digit Phone OTP"
+                                    value={phoneOtp}
+                                    onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, ""))}
+                                    className={styles.authInput}
+                                    style={{ textAlign: 'center', letterSpacing: '2px', borderColor: 'rgba(255, 204, 0, 0.35)', background: "#151518" }}
+                                />
+                            </div>
+                        )}
                     </div>
-
-                    {/* Conditional Drop: Phone OTP */}
-                    {isOtpStage && (
-                        <div className={styles.inputGroup} style={{ marginTop: '-8px' }}>
-                            <input
-                                type="text"
-                                required
-                                maxLength={6}
-                                placeholder="🔢 Enter 6-Digit Phone OTP"
-                                value={phoneOtp}
-                                onChange={(e) => setPhoneOtp(e.target.value.replace(/\D/g, ""))}
-                                className={styles.authInput}
-                                style={{ textAlign: 'center', borderColor: '#ffcc00' }}
-                            />
-                        </div>
-                    )}
 
                     {/* Input Field: Password */}
                     <div className={styles.inputGroup}>
                         <input type="password" name="password" required disabled={isOtpStage} placeholder="Enter Password" value={formData.password} onChange={handleChange} className={styles.authInput} />
                     </div>
 
-                    {/* ⚡ Inline Resend Timer Text Flag */}
+                    {/* ⚡ Inline Resend Timer Container */}
                     {isOtpStage && (
-                        <div style={{ textAlign: 'right', fontSize: '13px', marginTop: '-4px', marginBottom: '4px' }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-6px" }}>
                             {isResendDisabled ? (
-                                <span style={{ color: '#8e8e93' }}>Resend codes in <strong style={{ color: '#ffcc00' }}>{countdown}s</strong></span>
+                                <span style={{ color: '#636366', fontSize: '12px', letterSpacing: '0.3px' }}>
+                                    Resend keys in <strong style={{ color: '#ffcc00', fontWeight: "600" }}>{countdown}s</strong>
+                                </span>
                             ) : (
                                 <span 
                                     onClick={!loading ? handleResendOtps : undefined} 
-                                    style={{ color: '#ffcc00', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}
+                                    className={styles.redirectLink}
+                                    style={{ fontSize: '12px', margin: 0 }}
                                 >
-                                    🔄 Resend OTPs
+                                    🔄 Resend Security Codes
                                 </span>
                             )}
                         </div>
                     )}
 
-                    {/* Submit Button Switch */}
+                    {/* Dynamic Submit Button System */}
                     {!isOtpStage ? (
                         <button type="submit" disabled={loading} className={styles.submitBtn}>
-                            {loading ? 'Sending Codes...' : 'Send OTPs'}
+                            {loading ? 'Sending Verification...' : 'Send OTPs'}
                         </button>
                     ) : (
                         <button 
                             type="submit" 
                             disabled={loading} 
                             className={styles.submitBtn}
-                            style={{ backgroundColor: '#00ff66', color: '#121212', fontWeight: 'bold' }}
+                            style={{ 
+                                background: 'linear-gradient(135deg, #00ff66 0%, #00cc52 100%)', 
+                                color: '#050505', 
+                                boxShadow: '0 6px 20px rgba(0, 255, 102, 0.15)' 
+                            }}
                         >
-                            {loading ? 'Verifying & Registering...' : 'Verify & Register'}
+                            {loading ? 'Validating Handshake...' : 'Verify & Complete Register'}
                         </button>
                     )}
                 </form>

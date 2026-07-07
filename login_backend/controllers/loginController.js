@@ -33,7 +33,7 @@ const logIn = async (req, res) => {
         // generateToken(res, userData);
         setAccessTokenCookie(res, userData);
         const refreshToken = setRefreshTokenCookie(res, userData);
-        await createRefreshSession(userData._id, refreshToken);
+        await createRefreshSession(userData._id, refreshToken, req);
         // console.log(utoken)
         return res.status(200).json({
             message: "Logged In Successfully!!"
@@ -141,7 +141,7 @@ const verifyLogInOTPEmail = async (req,res)=>{
     // const token = generateToken(res, userData);
     setAccessTokenCookie(res, userData);
     const refreshToken = setRefreshTokenCookie(res, userData);
-        await createRefreshSession(userData._id, refreshToken);
+        await createRefreshSession(userData._id, refreshToken, req);
 
     await LoginOTP.deleteOne({email});
 
@@ -166,5 +166,111 @@ const verifyLogInOTPEmail = async (req,res)=>{
     }
 }
 
+const sendLogInOTPPhone = async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) {
+            return res.status(400).json({
+                message: "Phone number is required"
+            });
+        }
 
-module.exports = {logIn, sendLogInOTPEmail, verifyLogInOTPEmail}
+        const user = await User.findOne({ phone });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found. Please register first."
+            });
+        }
+
+        const otp = generateOTP();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+        let otpData = await LoginOTP.findOne({ phone });
+        // console.log(otpData)
+
+        if (otpData) {
+            otpData.otp = otp;
+            otpData.expiresAt = expiresAt;
+            await otpData.save();
+        } else {
+            await LoginOTP.create({
+                phone,
+                otp,
+                expiresAt
+            });
+        }
+
+        await sendSMSOTP(process.env.TWILIO_TO_PHONE, otp);
+
+        return res.status(200).json({
+            message: "OTP sent successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+const verifyLogInOTPPhone = async(req,res)=>{
+    try {
+        const { phone, otp } = req.body;
+
+        if (!phone || !otp) {
+            return res.status(400).json({
+                message: "Phone number and OTP are required"
+            });
+        }
+
+        const otpData = await LoginOTP.findOne({ phone });
+        if (!otpData) {
+            return res.status(400).json({
+                message: "Please request OTP again"
+            });
+        }
+
+        if (otpData.expiresAt < new Date()) {
+            await LoginOTP.deleteOne({ phone });
+
+            return res.status(400).json({
+                message: "OTP expired"
+            });
+        }
+
+        if (otpData.otp !== otp) {
+            return res.status(400).json({
+                message: "Invalid OTP"
+            });
+        }
+
+        const user = await User.findOne({ phone });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        setAccessTokenCookie(res, user);
+        const refreshToken = setRefreshTokenCookie(res, user);
+        await createRefreshSession(user._id, refreshToken, req);
+
+        await LoginOTP.deleteOne({ phone });
+
+        return res.status(200).json({
+            success: true,
+            message: "Login successful",
+            user
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+
+module.exports = {logIn, sendLogInOTPEmail, verifyLogInOTPEmail, sendLogInOTPPhone, verifyLogInOTPPhone}

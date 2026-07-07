@@ -1,35 +1,88 @@
-/* Container sizing and centering */
+/* Reset body defaults globally to create a sleek dark workspace */
+:global(body) {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; 
+  background-color: #08080a;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(255, 204, 0, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 204, 0, 0.02) 0%, transparent 40%);
+}
+
+/* 🪐 Entry Floating Animation Keyframes */
+@keyframes cardAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes glowPulse {
+  0% { border-color: #242426; box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+  50% { border-color: rgba(255, 204, 0, 0.3); box-shadow: 0 0 20px rgba(255, 204, 0, 0.05); }
+  100% { border-color: #242426; box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+}
+
+/* Container layout setup */
 .authContainer {
   display: flex;
-  min-height: 100vh;
+  width: 100vw;
+  height: 100vh;
   align-items: center;
   justify-content: center;
-  background-color: #0d0d0d;
-  padding: 0 16px;
+  background-color: #08080a;
+  padding: 16px;
   box-sizing: border-box;
   font-family: system-ui, -apple-system, sans-serif;
   color: #ffffff;
 }
 
+/* ✨ Premium Glassmorphism Card Wrapper */
 .authCard {
   width: 100%;
   max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
+  background: linear-gradient(135deg, #121214 0%, #161619 100%);
+  padding: 40px 32px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-sizing: border-box;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(255, 204, 0, 0.01);
+  
+  /* Running the smooth scale entry fade */
+  animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-/* Toggle Tabs for Sign Up / Log In */
+/* Hovering over the entire card gently deepens the glow accent */
+.authCard:hover {
+  border-color: rgba(255, 204, 0, 0.15);
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.6),
+    0 0 50px rgba(255, 204, 0, 0.03);
+}
+
+/* Toggle Tabs Box Layout */
 .tabContainer {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .tabPill {
   display: inline-flex;
-  background-color: #1c1c1e;
+  background-color: #0d0d0f;
   padding: 4px;
   border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .tabBtn {
@@ -38,28 +91,36 @@
   padding: 8px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #8e8e93;
+  color: #636366;
   border-radius: 9999px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+.tabBtn:hover:not(.tabBtnActive) {
+  color: #ffffff;
+}
+
+/* Active tab state containing smooth gradient shifts */
 .tabBtnActive {
-  background: linear-gradient(to right, #f5b800, #ffcc00);
+  background: linear-gradient(135deg, #f5b800 0%, #ffcc00 100%);
   color: #000000;
-  box-shadow: 0 4px 12px rgba(255, 204, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(255, 204, 0, 0.25);
 }
 
 /* Header Typography */
 .authTitle {
   text-align: center;
-  font-size: 32px;
+  font-size: 28px;
   margin: 0;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.5px;
+  background: linear-gradient(180deg, #ffffff 0%, #a1a1a5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Input Form elements */
+/* Input Form Stack framework */
 .authForm {
   display: flex;
   flex-direction: column;
@@ -71,65 +132,117 @@
   width: 100%;
 }
 
+/* ⚡ Cyberpunk Inspired Input Elements */
 .authInput {
   width: 100%;
   box-sizing: border-box;
-  background-color: #242426;
-  border: 1px solid transparent;
-  border-radius: 12px;
+  background-color: #1a1a1e;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
   padding: 16px 20px;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 15px;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .authInput::placeholder {
-  color: #555558;
+  color: #48484a;
+  transition: color 0.2s ease;
 }
 
+/* Input Interactive Animations */
 .authInput:focus {
   border-color: #ffcc00;
+  background-color: #1e1e24;
+  box-shadow: 0 0 25px rgba(255, 204, 0, 0.08);
 }
 
-/* Premium Gold Submit Button */
+.authInput:focus::placeholder {
+  color: #636366;
+  transform: translateX(4px); /* Tiny placeholder shift micro-interaction */
+}
+
+.authInput:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #121214;
+}
+
+/* 🚀 Fluid Multi-Dimensional Submit Button */
 .submitBtn {
   width: 100%;
-  background: linear-gradient(to right, #f5b800, #ffcc00);
+  background: linear-gradient(135deg, #ffdb4d 0%, #ffcc00 50%, #e6b800 100%);
+  background-size: 200% auto;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: #000000;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(255, 204, 0, 0.2);
-  transition: all 0.2s ease;
-  margin-top: 16px;
+  box-shadow: 0 6px 24px rgba(255, 204, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 8px;
 }
 
-.submitBtn:hover {
-  opacity: 0.95;
+.submitBtn:hover:not(:disabled) {
+  background-position: right center; /* Moves gradient under cursor */
+  box-shadow: 0 8px 32px rgba(255, 204, 0, 0.35);
+  transform: translateY(-2px);
 }
 
-.submitBtn:active {
-  transform: scale(0.99);
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2);
 }
 
-/* Footer elements */
+.submitBtn:disabled {
+  background: #242426;
+  color: #48484a;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.5;
+  transform: none;
+}
+
+/* Footer context typography links */
 .authFooter {
   text-align: center;
-  font-size: 14px;
-  color: #8e8e93;
+  font-size: 13px;
+  color: #636366;
+  margin-top: 4px;
 }
 
 .redirectLink {
   color: #ffcc00;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   margin-left: 6px;
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+
+/* Smooth Underline Draw Micro-Interaction */
+.redirectLink::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: #ffcc00;
+  transform-origin: bottom right;
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .redirectLink:hover {
-  text-decoration: underline;
+  color: #ffe066;
+}
+
+.redirectLink:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }

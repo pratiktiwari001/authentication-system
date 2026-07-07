@@ -5,6 +5,7 @@ const connectDB = require("./config/db.js");
 const authRoutes = require("./routes/authRoutes.js")
 const loginRoutes = require("./routes/loginRoutes.js")
 const logoutRoutes = require("./routes/logoutRoutes.js")
+const sessionRoutes = require("./routes/sessionRoutes.js")
 const authMiddleware = require("./middlewares/authMiddleware")
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use("/api/auth",authRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/logout", authMiddleware, logoutRoutes);
+app.use("/api/sessions", authMiddleware, sessionRoutes)
 app.use("/", (req,res)=>{
     res.send("API is running");
 });
