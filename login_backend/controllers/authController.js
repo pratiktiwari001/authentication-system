@@ -11,29 +11,23 @@ const bcrypt = require("bcrypt");
 const { setAccessTokenCookie, setRefreshTokenCookie } = require("../utils/generateToken");
 const createRefreshSession = require("../utils/createRefreshSession")
 const jwt = require("jsonwebtoken")
+const { isValid } = require('../utils/validation');
 
 
 const register = async (req, res) => {
     try {
-        const { name, email, phone, password } = req.body;
-
-
+        const sanitizedData = isValid(req, res);
         const user = await User.findOne(
-            // $or:[
-            //     {email: email},
-            //     {phone: phone}
-            // ]
-            { email }
+            { email: sanitizedData.email }
         );
 
         if (user) {
-            console.log("ERROR: User already exists")
             return res.status(400).json({
                 message: "User already exists"
             })
         }
 
-        const existingOTP = await OTP.findOne({ email });
+        const existingOTP = await OTP.findOne({ email: sanitizedData.email });
         const emailOTP = generateOTP();
         const phoneOTP = generateOTP();
         const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
@@ -46,19 +40,17 @@ const register = async (req, res) => {
 
         else {
             await OTP.create({
-                name,
-                email,
-                phone,
-                password,
+                name: sanitizedData.name,
+                email: sanitizedData.email,
+                phone: sanitizedData.phone,
+                password:sanitizedData.password,
                 emailOTP,
                 phoneOTP,
                 expiresAt
             })
         }
 
-        console.log(emailOTP);
-        console.log(phoneOTP);
-        await sendEmailOTP(email, emailOTP);
+        await sendEmailOTP(sanitizedData.email, emailOTP);
         await sendSMSOTP(process.env.TWILIO_TO_PHONE, phoneOTP);
 
         console.log("New User")
@@ -66,7 +58,11 @@ const register = async (req, res) => {
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({
+        // If it's a validation error we threw, send its message with a 400 status
+        if (error instanceof Error && !error.message.includes("DatabaseError")) { 
+            return res.status(400).json({ message: error.message });
+        }
+        return res.status(500).json({
             message: "Internal Server Error"
         });
     }

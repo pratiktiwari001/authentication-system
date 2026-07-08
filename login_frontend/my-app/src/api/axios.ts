@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://authentication-system-gray-two.vercel.app/api",
+     baseURL: "https://authentication-system-gray-two.vercel.app/api",
     withCredentials: true,   // ⭐ VERY IMPORTANT
     headers: {
         "Content-Type": "application/json",
